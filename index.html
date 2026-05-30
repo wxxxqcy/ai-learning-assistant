@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 学管助手</title>
+<style>
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --color-background-primary:   #ffffff;
+  --color-background-secondary: #f5f4f0;
+  --color-background-tertiary:  #eceae4;
+  --color-text-primary:   #1c1c1c;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary:  #9ca3af;
+  --color-border-tertiary: rgba(0,0,0,0.08);
+  --color-border-secondary: rgba(0,0,0,0.18);
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background-primary:   #1e1e1e;
+    --color-background-secondary: #2a2a2a;
+    --color-background-tertiary:  #141414;
+    --color-text-primary:   #f0eeea;
+    --color-text-secondary: #9ca3af;
+    --color-text-tertiary:  #6b7280;
+    --color-border-tertiary: rgba(255,255,255,0.08);
+    --color-border-secondary: rgba(255,255,255,0.18);
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font-sans); background: var(--color-background-tertiary); }
+
+/* ── API Banner ── */
+#api-banner {
+  background: var(--color-background-primary);
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  padding: 8px 18px; display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: var(--color-text-secondary); flex-shrink: 0;
+}
+#api-banner input {
+  flex: 1; max-width: 360px; padding: 5px 10px; font-size: 12px;
+  border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md);
+  font-family: var(--font-sans); color: var(--color-text-primary);
+  background: var(--color-background-secondary); letter-spacing: 0.5px;
+}
+#api-banner .api-tip { font-size: 11px; color: var(--color-text-tertiary); }
+#api-banner .api-ok  { font-size: 11px; color: #1D9E75; display: none; }
+
+/* ── Layout ── */
+.wrapper { display: flex; flex-direction: column; height: 100vh; }
+.app { display: flex; flex: 1; overflow: hidden; }
+.sb { width: 196px; background: var(--color-background-primary); border-right: 0.5px solid var(--color-border-tertiary); display: flex; flex-direction: column; flex-shrink: 0; }
+.sb-hd { padding: 16px 14px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.sb-hd h1 { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+.sb-hd p { font-size: 11px; color: var(--color-text-secondary); margin-top: 3px; }
+#sb-list { flex: 1; padding: 5px 0; overflow-y: auto; }
+.si { padding: 9px 12px; cursor: pointer; border-left: 2px solid transparent; transition: background 0.12s; }
+.si:hover { background: var(--color-background-secondary); }
+.si.on { background: var(--color-background-secondary); border-left-color: #1D9E75; }
+.si .sn { font-size: 13px; color: var(--color-text-primary); }
+.si.on .sn { font-weight: 500; }
+.si .sm { font-size: 10px; color: var(--color-text-secondary); margin-top: 2px; }
+.sst { font-size: 9px; padding: 1px 5px; border-radius: 99px; margin-left: 5px; vertical-align: middle; }
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.mh { background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); padding: 13px 20px; }
+.mh h2 { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+.mh p { font-size: 11px; color: var(--color-text-secondary); margin-top: 3px; }
+#tabs-bar { display: flex; background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); padding: 0 20px; overflow-x: auto; flex-shrink: 0; }
+#tabs-bar::-webkit-scrollbar { display: none; }
+.tb { padding: 9px 12px; font-size: 12px; cursor: pointer; color: var(--color-text-secondary); border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; font-family: var(--font-sans); outline: none; white-space: nowrap; transition: color 0.12s; }
+.tb:hover { color: var(--color-text-primary); }
+.tb.on { color: #1D9E75; border-bottom-color: #1D9E75; font-weight: 500; }
+#content { flex: 1; overflow-y: auto; padding: 14px 16px; }
+
+/* ── Cards ── */
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; margin-bottom: 12px; }
+.card h3 { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.desc { font-size: 11px; color: var(--color-text-secondary); margin: 3px 0 10px; }
+.c-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+
+/* ── Inputs ── */
+textarea, input[type=text], input[type=date], input[type=number], input[type=password] {
+  width: 100%; padding: 7px 10px; font-size: 12px;
+  border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md);
+  font-family: var(--font-sans); color: var(--color-text-primary);
+  background: var(--color-background-primary); line-height: 1.55; outline: none; transition: border-color 0.12s;
+}
+textarea:focus, input:focus { border-color: #1D9E75; }
+textarea { min-height: 68px; resize: vertical; }
+textarea::placeholder, input::placeholder { color: var(--color-text-tertiary); }
+
+/* ── Buttons ── */
+.bg { padding: 6px 13px; font-size: 12px; background: #1D9E75; color: #fff; border: none; border-radius: var(--border-radius-md); cursor: pointer; font-weight: 500; font-family: var(--font-sans); transition: opacity 0.12s; }
+.bg:hover { opacity: 0.88; }
+.bg:disabled { opacity: 0.5; cursor: not-allowed; }
+.bs { padding: 6px 12px; font-size: 12px; background: var(--color-background-secondary); color: var(--color-text-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; font-family: var(--font-sans); transition: background 0.12s; }
+.bs:hover { background: var(--color-border-tertiary); }
+.brow { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 8px; }
+
+/* ── Step ── */
+.sw { display: flex; gap: 9px; margin-bottom: 12px; }
+.sn2 { width: 20px; height: 20px; border-radius: 50%; background: #1D9E75; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; flex-shrink: 0; margin-top: 1px; }
+.sb2 { flex: 1; min-width: 0; }
+.ao { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; font-size: 12px; line-height: 1.85; color: var(--color-text-primary); white-space: pre-wrap; margin-top: 10px; }
+
+/* ── Stat Grid ── */
+.sg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.sbox { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+.sbox .sl { font-size: 10px; color: var(--color-text-secondary); margin-bottom: 3px; }
+.sbox .sv { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.sbox .ss { font-size: 10px; color: var(--color-text-secondary); margin-top: 2px; }
+
+/* ── Thread Toggle ── */
+.tt { display: flex; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); overflow: hidden; margin-bottom: 12px; width: fit-content; }
+.tt button { padding: 5px 14px; font-size: 12px; cursor: pointer; background: none; border: none; font-family: var(--font-sans); color: var(--color-text-secondary); transition: background 0.12s; }
+.tt button.on { background: #1D9E75; color: #fff; font-weight: 500; }
+
+/* ── Comm ── */
+.ce { padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.ce:last-child { border-bottom: none; }
+.ce-hd { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+.ce-dt { font-size: 10px; color: var(--color-text-secondary); margin-left: auto; }
+.ce-del { font-size: 11px; color: var(--color-text-tertiary); cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+.ce-del:hover { color: #E24B4A; background: rgba(226,75,74,0.08); }
+.ce-txt { font-size: 12px; color: var(--color-text-primary); line-height: 1.7; }
+.bdg { display: inline-flex; align-items: center; font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+.af { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 13px; margin-top: 10px; }
+.fr2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.fl { font-size: 10px; color: var(--color-text-secondary); margin-bottom: 3px; }
+.tob { padding: 3px 9px; border-radius: 99px; font-size: 11px; cursor: pointer; border: 1.5px solid transparent; background: none; font-family: var(--font-sans); transition: all 0.12s; }
+.leg { display: flex; gap: 8px; flex-wrap: wrap; padding: 9px 12px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); margin-top: 8px; }
+
+/* ── Exam ── */
+.ec { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px; margin-bottom: 8px; }
+.ec-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; flex-wrap: wrap; }
+.ec-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.ec-dt { font-size: 10px; color: var(--color-text-secondary); }
+.ec-del { margin-left: auto; font-size: 11px; color: var(--color-text-tertiary); cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+.ec-del:hover { color: #E24B4A; background: rgba(226,75,74,0.08); }
+.sbdg { font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 99px; }
+.ec-sec { margin-bottom: 6px; }
+.ec-sec .lbl { font-size: 9px; color: var(--color-text-secondary); margin-bottom: 3px; letter-spacing: 0.4px; text-transform: uppercase; }
+.ec-sec .val { font-size: 12px; color: var(--color-text-primary); line-height: 1.65; }
+.tag { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: var(--border-radius-md); margin: 1px 3px 1px 0; }
+.rb { width: 28px; height: 28px; border-radius: 50%; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-secondary); cursor: pointer; font-size: 11px; font-weight: 500; font-family: var(--font-sans); transition: all 0.12s; }
+.rb.on { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+.spin { display: inline-block; width: 10px; height: 10px; border: 1.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: sp .8s linear infinite; margin-right: 5px; vertical-align: middle; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 24px 0; font-size: 12px; color: var(--color-text-secondary); }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-secondary); border-radius: 4px; }
+
+/* ══════════════════════════════════════
+   Agent Tab Styles
+══════════════════════════════════════ */
+.agent-intro {
+  background: linear-gradient(135deg, rgba(29,158,117,0.06) 0%, rgba(29,158,117,0.02) 100%);
+  border: 0.5px solid rgba(29,158,117,0.2);
+  border-radius: var(--border-radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.agent-intro .ai { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.agent-intro .ad { font-size: 11px; color: var(--color-text-secondary); line-height: 1.6; }
+.agent-flow {
+  display: flex; align-items: center; gap: 6px; margin-top: 10px; flex-wrap: wrap;
+}
+.agent-flow .step {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 500;
+  background: rgba(29,158,117,0.1); color: #1D9E75;
+  padding: 3px 8px; border-radius: 99px;
+}
+.agent-flow .arrow { font-size: 10px; color: var(--color-text-tertiary); }
+
+/* Quick command pills */
+.cmd-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.cmd-pill {
+  font-size: 11px; padding: 4px 10px; border-radius: 99px; cursor: pointer;
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  transition: all 0.12s;
+}
+.cmd-pill:hover { border-color: #1D9E75; color: #1D9E75; background: rgba(29,158,117,0.06); }
+
+/* Agent Log */
+#agent-log { margin-top: 14px; }
+.log-entry {
+  display: flex; gap: 10px; margin-bottom: 10px;
+  animation: logIn 0.2s ease;
+}
+@keyframes logIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+.log-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; flex-shrink: 0; margin-top: 1px;
+}
+.log-icon.tool  { background: rgba(55,138,221,0.15); color: #378ADD; }
+.log-icon.ok    { background: rgba(29,158,117,0.15); color: #1D9E75; }
+.log-icon.think { background: rgba(186,117,23,0.12); color: #BA7517; }
+.log-icon.done  { background: #1D9E75; color: #fff; }
+.log-icon.err   { background: rgba(226,75,74,0.12); color: #E24B4A; }
+.log-body { flex: 1; min-width: 0; }
+.log-label { font-size: 10px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 3px; }
+.log-label.tool  { color: #378ADD; }
+.log-label.ok    { color: #1D9E75; }
+.log-label.think { color: #BA7517; }
+.log-label.done  { color: #1D9E75; }
+.log-label.err   { color: #E24B4A; }
+.log-text { font-size: 12px; color: var(--color-text-primary); line-height: 1.6; }
+.log-sub  { font-size: 11px; color: var(--color-text-secondary); line-height: 1.55; margin-top: 3px; white-space: pre-wrap; }
+
+/* Agent result box */
+.agent-result {
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  border-left: 3px solid #1D9E75;
+  padding: 12px 14px;
+  font-size: 12px; line-height: 1.85;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  margin-top: 4px;
+}
+
+/* Thinking pulse */
+.thinking-pulse {
+  display: flex; gap: 3px; align-items: center; padding: 2px 0;
+}
+.thinking-pulse span {
+  width: 5px; height: 5px; border-radius: 50%; background: #BA7517;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.thinking-pulse span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-pulse span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse { 0%,80%,100% { opacity:0.3; transform:scale(0.8); } 40% { opacity:1; transform:scale(1); } }
+
+/* Welcome Modal */
+#welcome-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.52); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+#welcome-overlay.hidden { display: none; }
+.wm { background: var(--color-background-primary); border-radius: 16px; padding: 32px 28px 24px; max-width: 480px; width: 100%; box-shadow: 0 24px 64px rgba(0,0,0,0.22); animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.wm-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: #1D9E75; background: rgba(29,158,117,0.1); padding: 4px 10px; border-radius: 99px; margin-bottom: 14px; }
+.wm h2 { font-size: 22px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 8px; line-height: 1.3; }
+.wm-sub { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 20px; }
+.wm-features { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 22px; }
+.wm-feat { background: var(--color-background-secondary); border-radius: 10px; padding: 10px 12px; }
+.wm-feat .icon { font-size: 16px; margin-bottom: 4px; }
+.wm-feat .title { font-size: 12px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.wm-feat .desc  { font-size: 10px; color: var(--color-text-secondary); line-height: 1.4; }
+.wm-key-section { background: rgba(29,158,117,0.06); border: 0.5px solid rgba(29,158,117,0.24); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; }
+.wm-key-section .kl { font-size: 12px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 8px; }
+.wm-key-section .kl span { color: var(--color-text-secondary); font-weight: 400; margin-left: 4px; }
+.wm-key-input-row { display: flex; gap: 7px; }
+.wm-key-input-row input { flex: 1; padding: 8px 11px; font-size: 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); }
+.wm-key-input-row input:focus { border-color: #1D9E75; outline: none; }
+.wm-key-hint { font-size: 10px; color: var(--color-text-tertiary); margin-top: 6px; }
+.wm-key-hint a { color: #1D9E75; text-decoration: none; }
+.wm-btn-primary { width: 100%; padding: 10px; font-size: 13px; font-weight: 500; background: #1D9E75; color: #fff; border: none; border-radius: var(--border-radius-md); cursor: pointer; font-family: var(--font-sans); transition: opacity 0.12s; margin-bottom: 8px; }
+.wm-btn-primary:hover { opacity: 0.88; }
+.wm-btn-skip { width: 100%; padding: 8px; font-size: 12px; color: var(--color-text-tertiary); background: none; border: none; cursor: pointer; font-family: var(--font-sans); }
+</style>
+</head>
+<body>
+
+<!-- Welcome Modal -->
+<div id="welcome-overlay" class="hidden">
+  <div class="wm">
+    <div class="wm-badge">✦ AI 产品演示</div>
+    <h2>AI 学管助手</h2>
+    <p class="wm-sub">为独立辅导老师设计的 AI 工作台，含 Agent 自动化功能。</p>
+    <div class="wm-features">
+      <div class="wm-feat"><div class="icon">🤖</div><div class="title">学管 Agent</div><div class="desc">一句指令，自动完成全流程学管工作</div></div>
+      <div class="wm-feat"><div class="icon">📝</div><div class="title">AI 出题</div><div class="desc">根据知识点自动生成抽查题</div></div>
+      <div class="wm-feat"><div class="icon">📊</div><div class="title">学情管理</div><div class="desc">出勤、作业、成绩统一记录</div></div>
+      <div class="wm-feat"><div class="icon">💬</div><div class="title">家长反馈</div><div class="desc">AI 一键生成专业微信反馈</div></div>
+    </div>
+    <div class="wm-key-section">
+      <div class="kl">输入 DeepSeek API Key <span>体验 AI 与 Agent 功能</span></div>
+      <div class="wm-key-input-row">
+        <input type="password" id="wm-key-input" placeholder="sk-..." oninput="onWmKeyInput(this.value)">
+      </div>
+      <div class="wm-key-hint">
+        没有 Key？<a href="https://platform.deepseek.com/api_keys" target="_blank">前往 DeepSeek Platform 获取 →</a><br>
+        Key 仅保存在本地浏览器，不会上传到任何服务器。
+      </div>
+    </div>
+    <button class="wm-btn-primary" onclick="closeWelcome()">开始使用</button>
+    <button class="wm-btn-skip" onclick="closeWelcome()">先跳过，稍后在顶部设置 Key</button>
+  </div>
+</div>
+
+<div class="wrapper">
+  <div id="api-banner">
+    <span>DeepSeek API Key：</span>
+    <input type="password" id="api-key-input" placeholder="sk-..." oninput="onApiKeyInput(this.value)">
+    <span class="api-tip">Key 仅保存在本地浏览器</span>
+    <span class="api-ok" id="api-ok">✓ 已设置</span>
+    <button class="bg" style="font-size:11px;padding:4px 10px;opacity:0.75" onclick="showWelcome()">使用说明</button>
+  </div>
+
+  <div class="app">
+    <div class="sb">
+      <div class="sb-hd">
+        <h1>AI 学管助手</h1>
+        <p>4 位学生在管</p>
+      </div>
+      <div id="sb-list"></div>
+    </div>
+    <div class="main">
+      <div class="mh">
+        <h2 id="mh-name"></h2>
+        <p id="mh-meta"></p>
+      </div>
+      <div id="tabs-bar"></div>
+      <div id="content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   API Key
+═══════════════════════════════════════ */
+let API_KEY = localStorage.getItem("xueguan_api_key") || "";
+
+function onApiKeyInput(val) {
+  API_KEY = val.trim();
+  syncApiKeyUI();
+  if (API_KEY) localStorage.setItem("xueguan_api_key", API_KEY);
+  else localStorage.removeItem("xueguan_api_key");
+}
+function onWmKeyInput(val) {
+  document.getElementById("api-key-input").value = val;
+  onApiKeyInput(val);
+}
+function syncApiKeyUI() {
+  const ok = document.getElementById("api-ok");
+  const tip = document.querySelector(".api-tip");
+  if (API_KEY.startsWith("sk-")) { ok.style.display = "inline"; tip.style.display = "none"; }
+  else { ok.style.display = "none"; tip.style.display = "inline"; }
+}
+function showWelcome() {
+  document.getElementById("welcome-overlay").classList.remove("hidden");
+  if (API_KEY) document.getElementById("wm-key-input").value = API_KEY;
+}
+function closeWelcome() {
+  document.getElementById("welcome-overlay").classList.add("hidden");
+  localStorage.setItem("xueguan_welcomed", "1");
+}
+
+/* ═══════════════════════════════════════
+   沟通类型
+═══════════════════════════════════════ */
+const CT = {
+  phone:   { label: "电话沟通", color: "#378ADD", bg: "rgba(55,138,221,0.12)" },
+  video:   { label: "视频沟通", color: "#7F77DD", bg: "rgba(127,119,221,0.12)" },
+  videoQA: { label: "视频答疑", color: "#1D9E75", bg: "rgba(29,158,117,0.12)" },
+  textQA:  { label: "文字答疑", color: "#BA7517", bg: "rgba(186,117,23,0.12)" },
+};
+
+/* ═══════════════════════════════════════
+   学生数据
+═══════════════════════════════════════ */
+const SC = { "活跃": "#1D9E75", "跟进中": "#BA7517" };
+const STUDENTS = [
+  { id: 1, name: "李明", grade: "初二", subject: "数学", status: "活跃" },
+  { id: 2, name: "王芳", grade: "初三", subject: "数学", status: "跟进中" },
+  { id: 3, name: "张伟", grade: "初一", subject: "数学", status: "活跃" },
+  { id: 4, name: "陈晓", grade: "初二", subject: "数学", status: "活跃" },
+];
+
+function mkData() {
+  return {
+    knowledgePoints: "", weakPoints: "", questions: "", practice: "", report: "", weeklyReport: "",
+    attendance: { present: 8, absent: 1, total: 9 },
+    homework: { completed: 7, late: 1, missed: 1, total: 9 },
+    participation: 3,
+    communications: { student: [], parent: [] },
+    exams: [],
+  };
+}
+function today() { return new Date().toISOString().slice(0, 10); }
+
+/* 示例数据 */
+const d1 = mkData();
+d1.knowledgePoints = "一次函数图像与性质，待定系数法求解析式";
+d1.weakPoints = "待定系数法步骤易遗漏，函数与方程联系概念模糊";
+d1.communications.student = [
+  { id: 1, date: "2025-03-10", type: "phone",   content: "了解本周学习情况，数学小测87分，一次函数掌握较好，方程应用题需加强。" },
+  { id: 2, date: "2025-03-17", type: "textQA",  content: "学生发来一道几何证明题，发送文字步骤解析，并布置同类型练习2道。" },
+  { id: 3, date: "2025-03-24", type: "videoQA", content: "视频连线30分钟，讲解期中考试中错误率高的应用题类型，学生理解良好。" },
+];
+d1.communications.parent = [
+  { id: 1, date: "2025-03-10", type: "phone",  content: "反馈本周表现：全勤，作业按时完成，参与度4/5。建议每天监督20分钟预习。" },
+  { id: 2, date: "2025-03-28", type: "textQA", content: "发送本月学习报告，孩子进步明显，期中较第一次月考提升6分，继续保持。" },
+];
+d1.exams = [
+  { id: 1, name: "第一次月考", date: "2025-03-01", score: 82, fullScore: 100, strong: "整式运算、一元一次方程", weak: "一次函数应用、几何初步", analysis: "基础题掌握扎实，失分主要集中在应用题和几何，建议加强题型专项训练，注意审题细节。" },
+  { id: 2, name: "期中考试",   date: "2025-04-15", score: 88, fullScore: 100, strong: "一次函数图像、整式运算", weak: "几何证明、数据统计",    analysis: "较月考提升6分，一次函数模块显著进步。几何证明逻辑性需加强，建议每周专项练习2-3道证明题。" },
+  { id: 3, name: "第二次月考", date: "2025-05-10", score: 91, fullScore: 100, strong: "一次函数、几何基础",     weak: "概率初步、综合应用",    analysis: "持续进步，几何改善明显。概率是新知识点，需更多练习巩固频率与概率关系。" },
+];
+
+/* LocalStorage */
+const LS_KEY = "xueguan_data_v2";
+function persist() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state.data)); } catch(e) {}
+}
+function loadPersistedData() {
+  try { const r = localStorage.getItem(LS_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+}
+
+/* ═══════════════════════════════════════
+   全局状态
+═══════════════════════════════════════ */
+let state = {
+  selectedId: 1, currentTab: "agent",
+  commThread: "student", addCommOpen: false, addExamOpen: false,
+  formComm: { type: "phone", date: today(), content: "" },
+  formExam: { name: "", date: today(), score: "", fullScore: "100", strong: "", weak: "", analysis: "" },
+  data: { 1: d1, 2: mkData(), 3: mkData(), 4: mkData() },
+  agent: { running: false, log: [], cmd: "" },
+};
+
+const saved = loadPersistedData();
+if (saved) Object.keys(saved).forEach(id => { if (state.data[id]) state.data[id] = saved[id]; });
+
+function d()   { return state.data[state.selectedId]; }
+function stu() { return STUDENTS.find(x => x.id === state.selectedId); }
+
+/* ═══════════════════════════════════════
+   成绩颜色 / 折线图
+═══════════════════════════════════════ */
+function scoreColor(s, f) {
+  const p = s / f * 100;
+  if (p >= 90) return { bg: "rgba(29,158,117,0.12)",  c: "#1D9E75" };
+  if (p >= 75) return { bg: "rgba(55,138,221,0.12)",  c: "#378ADD" };
+  if (p >= 60) return { bg: "rgba(186,117,23,0.12)",  c: "#BA7517" };
+  return           { bg: "rgba(226,75,74,0.10)",   c: "#E24B4A" };
+}
+
+function chartSVG(exams) {
+  if (!exams.length) return '<div class="empty">暂无成绩记录</div>';
+  const W=520,H=170,pL=38,pR=34,pT=28,pB=38;
+  const pw=W-pL-pR, ph=H-pT-pB;
+  const scores=exams.map(e=>e.score), avg=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+  const maxS=Math.max(...exams.map(e=>e.fullScore)), minD=Math.max(0,Math.min(...scores)-12), range=(maxS-minD)||1;
+  const toY=v=>pT+ph-((v-minD)/range)*ph, n=exams.length, toX=i=>n<2?pL+pw/2:pL+(i/(n-1))*pw;
+  const pts=exams.map((e,i)=>({x:toX(i),y:toY(e.score),s:e.score,nm:e.name.length>5?e.name.slice(0,5)+"…":e.name,dt:e.date.slice(5)}));
+  let g="";
+  [0,25,50,75,100].filter(v=>v>=minD-5).forEach(v=>{const y=toY(v).toFixed(1);g+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke-width="0.5" stroke="var(--color-border-tertiary)"/><text x="${pL-5}" y="${(+y+3.5).toFixed(1)}" font-size="9" text-anchor="end" fill="var(--color-text-secondary)">${v}</text>`;});
+  const ay=toY(avg).toFixed(1);
+  g+=`<line x1="${pL}" y1="${ay}" x2="${W-pR}" y2="${ay}" stroke="#E24B4A" stroke-width="1" stroke-dasharray="4,3"/><text x="${W-pR+3}" y="${(+ay+3.5).toFixed(1)}" font-size="9" fill="#E24B4A" font-weight="500">均${avg}</text>`;
+  if(n>1){const bL=toY(minD).toFixed(1);g+=`<polygon points="${pts[0].x.toFixed(1)},${bL} ${pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")} ${pts[n-1].x.toFixed(1)},${bL}" fill="#1D9E75" opacity="0.08"/><polyline points="${pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linejoin="round"/>`;}
+  pts.forEach(p=>{g+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.5" fill="#1D9E75" stroke="var(--color-background-primary)" stroke-width="2"/><text x="${p.x.toFixed(1)}" y="${(p.y-10).toFixed(1)}" font-size="10" text-anchor="middle" fill="var(--color-text-primary)" font-weight="500">${p.s}</text><text x="${p.x.toFixed(1)}" y="${H-pB+14}" font-size="9" text-anchor="middle" fill="var(--color-text-secondary)">${p.nm}</text><text x="${p.x.toFixed(1)}" y="${H-pB+24}" font-size="8.5" text-anchor="middle" fill="var(--color-text-tertiary)">${p.dt}</text>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;overflow:visible">${g}</svg>`;
+}
+
+/* ═══════════════════════════════════════
+   渲染
+═══════════════════════════════════════ */
+function renderSidebar() {
+  document.getElementById("sb-list").innerHTML = STUDENTS.map(s => `
+    <div class="si${s.id===state.selectedId?" on":""}" onclick="selectStudent(${s.id})">
+      <div class="sn">${s.name}<span class="sst" style="background:${SC[s.status]}22;color:${SC[s.status]}">${s.status}</span></div>
+      <div class="sm">${s.grade} · ${s.subject}</div>
+    </div>`).join("");
+}
+function renderTabs() {
+  const tabs = [["agent","🤖 Agent"],["weekly","本周沟通"],["records","学习记录"],["comm","沟通记录"],["scores","成绩分析"],["report","家长报告"]];
+  document.getElementById("tabs-bar").innerHTML = tabs.map(([k,l])=>
+    `<button class="tb${state.currentTab===k?" on":""}" onclick="switchTab('${k}',this)">${l}</button>`).join("");
+}
+function renderContent() {
+  const el = document.getElementById("content");
+  const m = { agent: renderAgent, weekly: renderWeekly, records: renderRecords, comm: renderComm, scores: renderScores, report: renderReport };
+  if (m[state.currentTab]) el.innerHTML = m[state.currentTab]();
+}
+
+/* ── Agent Tab ── */
+function renderAgent() {
+  const s = stu();
+  const defaultCmd = `帮我处理${s.name}这周的学管工作`;
+  const cmdVal = state.agent.cmd || defaultCmd;
+
+  const logHTML = state.agent.log.map(entry => {
+    const iconMap = { tool:"🔧", ok:"✓", think:"…", done:"✦", err:"✕" };
+    return `
+      <div class="log-entry">
+        <div class="log-icon ${entry.type}">${entry.type==="think"?`<div class="thinking-pulse"><span></span><span></span><span></span></div>`:iconMap[entry.type]||"·"}</div>
+        <div class="log-body">
+          <div class="log-label ${entry.type}">${entry.label}</div>
+          <div class="log-text">${entry.text}</div>
+          ${entry.sub ? `<div class="log-sub">${entry.sub}</div>` : ""}
+        </div>
+      </div>`;
+  }).join("");
+
+  return `
+    <div class="agent-intro">
+      <div class="ai">🤖 学管 Agent</div>
+      <div class="ad">一句指令，Agent 自动读取学生数据、判断是否需要生成练习、生成家长反馈，最终输出完整周报。全程多步自主执行，无需逐一点击。</div>
+      <div class="agent-flow">
+        <div class="step">① 读取学生数据</div>
+        <div class="arrow">→</div>
+        <div class="step">② 判断是否出题</div>
+        <div class="arrow">→</div>
+        <div class="step">③ 生成家长反馈</div>
+        <div class="arrow">→</div>
+        <div class="step">④ 输出周报</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>发出指令</h3>
+      <p class="desc">快捷选择或自定义指令</p>
+      <div class="cmd-pills">
+        ${STUDENTS.map(st=>`<button class="cmd-pill" onclick="setAgentCmd('帮我处理${st.name}这周的学管工作')">处理${st.name}的本周工作</button>`).join("")}
+      </div>
+      <textarea id="agent-cmd" placeholder="例：帮我处理李明这周的学管工作" oninput="state.agent.cmd=this.value">${cmdVal}</textarea>
+      <div class="brow">
+        <button class="bg" id="btn-agent" onclick="runAgent()" ${state.agent.running?"disabled":""}>
+          ${state.agent.running?'<span class="spin"></span>Agent 执行中...':'✦ 执行 Agent'}
+        </button>
+        ${state.agent.log.length ? `<button class="bs" onclick="clearAgentLog()">清空日志</button>` : ""}
+      </div>
+    </div>
+
+    ${state.agent.log.length ? `
+    <div class="card">
+      <h3>执行日志</h3>
+      <div id="agent-log" style="margin-top:10px">${logHTML}</div>
+    </div>` : ""}
+  `;
+}
+
+function setAgentCmd(cmd) {
+  state.agent.cmd = cmd;
+  // 同时更新当前选中的学生
+  const name = cmd.match(/处理(.+?)这周/)?.[1];
+  if (name) {
+    const s = STUDENTS.find(x => x.name === name);
+    if (s) { state.selectedId = s.id; renderSidebar(); }
+  }
+  renderContent();
+  setTimeout(() => {
+    const ta = document.getElementById("agent-cmd");
+    if (ta) { ta.value = cmd; ta.focus(); }
+  }, 50);
+}
+
+function clearAgentLog() {
+  state.agent.log = [];
+  renderContent();
+}
+
+function addLog(type, label, text, sub) {
+  state.agent.log.push({ type, label, text, sub: sub || "" });
+  // 仅刷新日志区域
+  const logEl = document.getElementById("agent-log");
+  if (logEl) {
+    const entry = state.agent.log[state.agent.log.length - 1];
+    const iconMap = { tool:"🔧", ok:"✓", think:"…", done:"✦", err:"✕" };
+    const div = document.createElement("div");
+    div.className = "log-entry";
+    div.innerHTML = `
+      <div class="log-icon ${entry.type}">${entry.type==="think"?`<div class="thinking-pulse"><span></span><span></span><span></span></div>`:iconMap[entry.type]||"·"}</div>
+      <div class="log-body">
+        <div class="log-label ${entry.type}">${entry.label}</div>
+        <div class="log-text">${entry.text}</div>
+        ${entry.sub ? `<div class="log-sub">${entry.sub}</div>` : ""}
+      </div>`;
+    logEl.appendChild(div);
+  }
+}
+
+/* ── 其他 Tab 渲染 ── */
+function renderWeekly() {
+  const data = d();
+  return `
+    <div class="sw"><div class="sn2">1</div><div class="sb2"><div class="card">
+      <h3>记录本周知识点</h3>
+      <p class="desc">电话沟通后，记录学生本周在校学习内容</p>
+      <textarea placeholder="例：一次函数图像与性质，待定系数法求解析式..." oninput="updateField('knowledgePoints',this.value)">${data.knowledgePoints}</textarea>
+      <div class="brow"><button class="bg" id="btn-q" onclick="genQuestions()">✦ AI 生成抽查题目</button></div>
+      ${data.questions?`<div class="ao">${data.questions}</div>`:""}
+    </div></div></div>
+    <div class="sw"><div class="sn2">2</div><div class="sb2"><div class="card">
+      <h3>记录薄弱点</h3>
+      <p class="desc">根据抽查结果，记录掌握不扎实的知识点</p>
+      <textarea placeholder="例：待定系数法步骤易遗漏，函数与方程联系概念模糊..." oninput="updateField('weakPoints',this.value)">${data.weakPoints}</textarea>
+      <div class="brow"><button class="bg" id="btn-p" onclick="genPractice()">✦ AI 生成专项练习</button></div>
+      ${data.practice?`<div class="ao">${data.practice}</div>`:""}
+    </div></div></div>`;
+}
+
+function renderRecords() {
+  const a=d().attendance, h=d().homework, p=d().participation;
+  const rl=["","不积极","较被动","一般","较主动","非常积极"];
+  return `
+    <div class="card">
+      <div class="c-hd"><h3>出勤记录（本月）</h3></div>
+      <div class="sg" style="margin-top:10px">
+        <div class="sbox"><div class="sl">出勤</div><div class="sv">${a.present}</div><div class="ss">节课</div></div>
+        <div class="sbox"><div class="sl">缺勤</div><div class="sv">${a.absent}</div><div class="ss">节课</div></div>
+        <div class="sbox"><div class="sl">出勤率</div><div class="sv">${Math.round(a.present/a.total*100)}%</div><div class="ss">共${a.total}节</div></div>
+      </div>
+      <div class="brow"><button class="bg" onclick="updateAttend('present')">+ 出勤</button><button class="bs" onclick="updateAttend('absent')">+ 缺勤</button></div>
+    </div>
+    <div class="card">
+      <h3>作业完成情况（本月）</h3>
+      <div class="sg" style="margin-top:10px">
+        <div class="sbox"><div class="sl">按时完成</div><div class="sv">${h.completed}</div><div class="ss">次</div></div>
+        <div class="sbox"><div class="sl">迟交/未交</div><div class="sv">${h.late+h.missed}</div><div class="ss">次</div></div>
+        <div class="sbox"><div class="sl">完成率</div><div class="sv">${Math.round(h.completed/h.total*100)}%</div><div class="ss">共${h.total}次</div></div>
+      </div>
+      <div class="brow"><button class="bg" onclick="updateHomework('completed')">+ 按时完成</button><button class="bs" onclick="updateHomework('late')">+ 迟交</button><button class="bs" onclick="updateHomework('missed')">+ 未交</button></div>
+    </div>
+    <div class="card">
+      <h3>课堂参与度</h3>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:10px">
+        ${[1,2,3,4,5].map(n=>`<button class="rb${p>=n?" on":""}" onclick="setParticipation(${n})">${n}</button>`).join("")}
+        <span style="font-size:11px;color:var(--color-text-secondary);margin-left:7px">${rl[p]}</span>
+      </div>
+    </div>`;
+}
+
+function renderComm() {
+  const data=d(), thread=state.commThread, entries=data.communications[thread];
+  const eHTML = entries.length===0?'<div class="empty">暂无沟通记录</div>':entries.map(e=>{
+    const ct=CT[e.type];
+    return `<div class="ce"><div class="ce-hd"><span class="bdg" style="background:${ct.bg};color:${ct.color}">${ct.label}</span><span class="ce-dt">${e.date}</span><span class="ce-del" onclick="deleteComm('${thread}',${e.id})">✕</span></div><div class="ce-txt">${e.content}</div></div>`;
+  }).join("");
+  const typeOpts=Object.entries(CT).map(([k,v])=>`<button class="tob" style="color:${v.color};background:${state.formComm.type===k?v.bg:"none"};border-color:${state.formComm.type===k?v.color:"transparent"}" onclick="setFormCommType('${k}')">${v.label}</button>`).join("");
+  const addForm=state.addCommOpen?`<div class="af"><div class="fl" style="margin-bottom:6px">沟通类型</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px">${typeOpts}</div><div class="fr2"><div><div class="fl">沟通日期</div><input type="date" value="${state.formComm.date}" oninput="updateFormComm('date',this.value)"></div><div></div></div><div class="fl">沟通内容</div><textarea placeholder="记录本次沟通要点..." oninput="updateFormComm('content',this.value)">${state.formComm.content}</textarea><div class="brow"><button class="bg" onclick="submitComm()">保存记录</button><button class="bs" onclick="toggleAddComm()">取消</button></div></div>`:`<button class="bg" style="margin-top:7px" onclick="toggleAddComm()">+ 添加记录</button>`;
+  return `<div class="card"><div class="c-hd"><h3>沟通记录</h3></div><p class="desc">分别记录与学生、与家长的每次沟通内容</p><div class="tt"><button class="${thread==="student"?"on":""}" onclick="setCommThread('student')">与学生沟通</button><button class="${thread==="parent"?"on":""}" onclick="setCommThread('parent')">与家长沟通</button></div>${eHTML}${addForm}</div><div class="leg">${Object.entries(CT).map(([,v])=>`<span class="bdg" style="background:${v.bg};color:${v.color};margin-right:4px">${v.label}</span>`).join("")}</div>`;
+}
+
+function renderScores() {
+  const exams=d().exams, avg=exams.length?Math.round(exams.reduce((a,e)=>a+e.score,0)/exams.length):0;
+  const examCards=exams.length===0?'<div class="empty">暂无考试记录</div>':exams.map(e=>{
+    const sc=scoreColor(e.score,e.fullScore);
+    const sTags=e.strong.split(/[、，,]/).filter(Boolean).map(t=>`<span class="tag" style="background:rgba(29,158,117,0.1);color:#1D9E75">${t.trim()}</span>`).join("");
+    const wTags=e.weak.split(/[、，,]/).filter(Boolean).map(t=>`<span class="tag" style="background:rgba(226,75,74,0.09);color:#E24B4A">${t.trim()}</span>`).join("");
+    return `<div class="ec"><div class="ec-hd"><span class="ec-name">${e.name}</span><span class="ec-dt">${e.date}</span><span class="sbdg" style="background:${sc.bg};color:${sc.c}">${e.score}/${e.fullScore}</span><span class="ec-del" onclick="deleteExam(${e.id})">✕</span></div><div class="ec-sec"><div class="lbl">强项</div><div class="val">${sTags||e.strong||"—"}</div></div><div class="ec-sec"><div class="lbl">弱项</div><div class="val">${wTags||e.weak||"—"}</div></div>${e.analysis?`<div class="ec-sec"><div class="lbl">试卷分析</div><div class="val">${e.analysis}</div></div>`:""}</div>`;
+  }).join("");
+  const addForm=state.addExamOpen?`<div class="af"><div class="fr2"><div><div class="fl">考试名称</div><input type="text" value="${state.formExam.name}" placeholder="例：第三次月考" oninput="updateFormExam('name',this.value)"></div><div><div class="fl">考试日期</div><input type="date" value="${state.formExam.date}" oninput="updateFormExam('date',this.value)"></div></div><div class="fr2"><div><div class="fl">得分</div><input type="number" value="${state.formExam.score}" placeholder="85" min="0" oninput="updateFormExam('score',this.value)"></div><div><div class="fl">满分</div><input type="number" value="${state.formExam.fullScore}" placeholder="100" min="1" oninput="updateFormExam('fullScore',this.value)"></div></div><div style="margin-bottom:7px"><div class="fl">强项</div><input type="text" value="${state.formExam.strong}" placeholder="一次函数，整式运算" oninput="updateFormExam('strong',this.value)"></div><div style="margin-bottom:7px"><div class="fl">弱项</div><input type="text" value="${state.formExam.weak}" placeholder="几何证明，应用题" oninput="updateFormExam('weak',this.value)"></div><div style="margin-bottom:7px"><div class="fl">试卷分析</div><textarea placeholder="分析备注..." oninput="updateFormExam('analysis',this.value)">${state.formExam.analysis}</textarea></div><div class="brow"><button class="bs" id="btn-ea" onclick="genExamAnalysis()" style="border-color:#1D9E75;color:#1D9E75">✦ AI 辅助分析</button><button class="bg" onclick="submitExam()">保存记录</button><button class="bs" onclick="toggleAddExam()">取消</button></div></div>`:`<button class="bg" style="margin-top:7px" onclick="toggleAddExam()">+ 添加考试</button>`;
+  return `<div class="card"><div class="c-hd"><h3>成绩趋势</h3>${exams.length>1?`<span style="font-size:10px;color:var(--color-text-secondary)">均分 ${avg} 分 · 共 ${exams.length} 次</span>`:""}</div><div style="margin-top:12px;overflow:visible">${chartSVG(exams)}</div></div><div class="card"><div class="c-hd"><h3>试卷分析记录</h3></div><div style="margin-top:9px">${examCards}</div>${addForm}</div>`;
+}
+
+function renderReport() {
+  const data=d(), a=data.attendance, h=data.homework, last=data.exams.length?data.exams[data.exams.length-1]:null;
+  return `<div class="card"><h3>本阶段数据摘要</h3><div class="sg" style="margin-top:10px"><div class="sbox"><div class="sl">出勤率</div><div class="sv">${Math.round(a.present/a.total*100)}%</div></div><div class="sbox"><div class="sl">作业完成率</div><div class="sv">${Math.round(h.completed/h.total*100)}%</div></div><div class="sbox"><div class="sl">参与度</div><div class="sv">${data.participation}/5</div></div></div>${last?`<p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px">最近考试：${last.name} ${last.score}/${last.fullScore} 分</p>`:""}<button class="bg" id="btn-r" onclick="genReport()">✦ 一键生成家长反馈</button></div>${data.report?`<div class="card"><div class="c-hd"><h3>微信反馈内容</h3><button class="bs" id="copy-btn" onclick="copyReport()">复制</button></div><div class="ao" style="margin-top:8px">${data.report}</div></div>`:""}`;
+}
+
+/* ═══════════════════════════════════════
+   事件处理
+═══════════════════════════════════════ */
+function selectStudent(id) {
+  state.selectedId=id; state.commThread="student"; state.addCommOpen=false; state.addExamOpen=false;
+  state.formComm={type:"phone",date:today(),content:""}; state.formExam={name:"",date:today(),score:"",fullScore:"100",strong:"",weak:"",analysis:""};
+  const s=STUDENTS.find(x=>x.id===id);
+  document.getElementById("mh-name").textContent=s.name;
+  document.getElementById("mh-meta").textContent=`${s.grade} · 辅导科目：${s.subject} · 状态：${s.status}`;
+  renderSidebar(); renderContent();
+}
+function switchTab(tab,el) {
+  state.currentTab=tab; state.addCommOpen=false; state.addExamOpen=false;
+  document.querySelectorAll(".tb").forEach(b=>b.classList.remove("on")); el.classList.add("on"); renderContent();
+}
+function updateField(f,v)    { state.data[state.selectedId][f]=v; persist(); }
+function updateAttend(t)      { const a=state.data[state.selectedId].attendance; a[t]++; a.total++; persist(); renderContent(); }
+function updateHomework(t)    { const h=state.data[state.selectedId].homework;   h[t]++; h.total++; persist(); renderContent(); }
+function setParticipation(n)  { state.data[state.selectedId].participation=n; persist(); renderContent(); }
+function setCommThread(t)     { state.commThread=t; state.addCommOpen=false; renderContent(); }
+function toggleAddComm()      { state.addCommOpen=!state.addCommOpen; renderContent(); }
+function toggleAddExam()      { state.addExamOpen=!state.addExamOpen; renderContent(); }
+function setFormCommType(t)   { state.formComm.type=t; renderContent(); }
+function updateFormComm(f,v)  { state.formComm[f]=v; }
+function updateFormExam(f,v)  { state.formExam[f]=v; }
+function submitComm() {
+  const fc=state.formComm; if(!fc.content.trim()){alert("请填写沟通内容");return;}
+  const arr=state.data[state.selectedId].communications[state.commThread];
+  arr.push({id:arr.length?Math.max(...arr.map(x=>x.id))+1:1,date:fc.date,type:fc.type,content:fc.content.trim()});
+  state.formComm={type:"phone",date:today(),content:""}; state.addCommOpen=false; persist(); renderContent();
+}
+function deleteComm(thread,id) { state.data[state.selectedId].communications[thread]=state.data[state.selectedId].communications[thread].filter(e=>e.id!==id); persist(); renderContent(); }
+function submitExam() {
+  const fe=state.formExam; if(!fe.name.trim()||!fe.score){alert("请填写考试名称和得分");return;}
+  const arr=state.data[state.selectedId].exams;
+  arr.push({id:arr.length?Math.max(...arr.map(x=>x.id))+1:1,name:fe.name.trim(),date:fe.date,score:parseInt(fe.score),fullScore:parseInt(fe.fullScore)||100,strong:fe.strong,weak:fe.weak,analysis:fe.analysis});
+  state.formExam={name:"",date:today(),score:"",fullScore:"100",strong:"",weak:"",analysis:""}; state.addExamOpen=false; persist(); renderContent();
+}
+function deleteExam(id) { state.data[state.selectedId].exams=state.data[state.selectedId].exams.filter(e=>e.id!==id); persist(); renderContent(); }
+function copyReport() {
+  navigator.clipboard.writeText(d().report).then(()=>{
+    const btn=document.getElementById("copy-btn"); if(btn){btn.textContent="已复制 ✓";setTimeout(()=>{const b=document.getElementById("copy-btn");if(b)b.textContent="复制";},1500);}
+  });
+}
+
+/* ═══════════════════════════════════════
+   Agent — Tool 定义
+═══════════════════════════════════════ */
+const AGENT_TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "get_student_data",
+      description: "读取指定学生的完整学管数据，包括出勤、作业完成率、课堂参与度、本周知识点、薄弱点和最近考试成绩。调用此工具后才能了解学生当前情况。",
+      parameters: {
+        type: "object",
+        properties: {
+          student_name: { type: "string", description: "学生姓名，例如：李明" }
+        },
+        required: ["student_name"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "save_practice_questions",
+      description: "当学生存在明确薄弱点时，生成并保存专项练习题。questions 参数中写入你生成的练习题内容（5道题，编号1-5，每题附解题提示）。如学生无薄弱点则跳过此工具。",
+      parameters: {
+        type: "object",
+        properties: {
+          student_name: { type: "string", description: "学生姓名" },
+          questions: { type: "string", description: "生成的专项练习题，5道，编号1-5，每题附简要解题提示" }
+        },
+        required: ["student_name", "questions"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "save_parent_feedback",
+      description: "根据学生数据生成并保存家长微信反馈消息。feedback 参数中写入200-300字的反馈内容，语气温暖专业，结构为：先肯定→指出不足→给出家庭辅助建议。",
+      parameters: {
+        type: "object",
+        properties: {
+          student_name: { type: "string", description: "学生姓名" },
+          feedback: { type: "string", description: "200-300字的家长微信反馈内容" }
+        },
+        required: ["student_name", "feedback"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "output_weekly_report",
+      description: "汇总本周所有学管结果，生成完整周报。在所有其他工具调用完成后最后调用此工具。",
+      parameters: {
+        type: "object",
+        properties: {
+          student_name: { type: "string", description: "学生姓名" },
+          report: { type: "string", description: "完整的周报内容，包含数据摘要、本周处理事项和建议" }
+        },
+        required: ["student_name", "report"]
+      }
+    }
+  }
+];
+
+/* ── Tool 执行函数 ── */
+function executeTool(name, input) {
+  if (name === "get_student_data") {
+    const s = STUDENTS.find(x => x.name === input.student_name);
+    if (!s) return JSON.stringify({ error: `未找到学生：${input.student_name}` });
+    const data = state.data[s.id];
+    const last = data.exams.length ? data.exams[data.exams.length - 1] : null;
+    return JSON.stringify({
+      student: { name: s.name, grade: s.grade, subject: s.subject, status: s.status },
+      attendance: { present: data.attendance.present, absent: data.attendance.absent, total: data.attendance.total, rate: Math.round(data.attendance.present / data.attendance.total * 100) + "%" },
+      homework: { completed: data.homework.completed, missed: data.homework.late + data.homework.missed, total: data.homework.total, rate: Math.round(data.homework.completed / data.homework.total * 100) + "%" },
+      participation: data.participation + "/5",
+      knowledgePoints: data.knowledgePoints || "本周未记录",
+      weakPoints: data.weakPoints || "暂无明显薄弱点",
+      latestExam: last ? { name: last.name, score: last.score + "/" + last.fullScore, strong: last.strong, weak: last.weak } : null
+    });
+  }
+  if (name === "save_practice_questions") {
+    const s = STUDENTS.find(x => x.name === input.student_name);
+    if (s) { state.data[s.id].practice = input.questions; persist(); }
+    return JSON.stringify({ success: true, saved: "专项练习题已保存到学生档案" });
+  }
+  if (name === "save_parent_feedback") {
+    const s = STUDENTS.find(x => x.name === input.student_name);
+    if (s) { state.data[s.id].report = input.feedback; persist(); }
+    return JSON.stringify({ success: true, saved: "家长反馈已保存到学生档案" });
+  }
+  if (name === "output_weekly_report") {
+    const s = STUDENTS.find(x => x.name === input.student_name);
+    if (s) { state.data[s.id].weeklyReport = input.report; persist(); }
+    return JSON.stringify({ success: true, saved: "周报已生成并保存" });
+  }
+  return JSON.stringify({ error: "未知工具：" + name });
+}
+
+/* ═══════════════════════════════════════
+   Agent 主循环
+═══════════════════════════════════════ */
+async function runAgent() {
+  if (!API_KEY) { showWelcome(); return; }
+  if (state.agent.running) return;
+
+  const cmd = (document.getElementById("agent-cmd")?.value || state.agent.cmd || "").trim();
+  if (!cmd) { alert("请输入指令"); return; }
+
+  state.agent.running = true;
+  state.agent.log = [];
+  state.agent.cmd = cmd;
+  renderContent();
+
+  const SYSTEM = `你是一位专业的学管 Agent，负责协助独立辅导老师完成学生的周度学管工作。
+你的工作流程：
+1. 调用 get_student_data 读取学生数据
+2. 根据数据判断是否有薄弱点：有则调用 save_practice_questions 生成并保存专项练习；无则跳过
+3. 调用 save_parent_feedback 生成家长微信反馈（200-300字，肯定→不足→建议三段式）
+4. 调用 output_weekly_report 生成完整周报
+5. 最后用文字给老师一个简短的执行摘要
+
+请严格按此流程执行，每个工具调用要真正生成内容（练习题、反馈、周报），不要省略。`;
+
+  const messages = [
+    { role: "system", content: SYSTEM },
+    { role: "user", content: cmd }
+  ];
+
+  addLog("think", "开始思考", "Agent 正在分析指令...", "");
+
+  try {
+    let round = 0;
+    const MAX_ROUNDS = 10;
+
+    while (round < MAX_ROUNDS) {
+      round++;
+
+      const res = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          max_tokens: 2000,
+          tools: AGENT_TOOLS,
+          messages,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.error) { addLog("err", "API 错误", json.error.message, ""); break; }
+
+      const choice = json.choices[0];
+      const msg = choice.message;
+
+      // 把 assistant 回复加入 messages
+      messages.push(msg);
+
+      // 处理工具调用
+      let hasToolUse = false;
+      const toolResults = [];
+
+      if (msg.tool_calls && msg.tool_calls.length > 0) {
+        hasToolUse = true;
+        for (const toolCall of msg.tool_calls) {
+          const toolName = toolCall.function.name;
+          const toolInput = JSON.parse(toolCall.function.arguments);
+
+          const toolLabels = {
+            get_student_data: "读取学生数据",
+            save_practice_questions: "生成专项练习题",
+            save_parent_feedback: "生成家长反馈",
+            output_weekly_report: "输出周报",
+          };
+          addLog("tool", `调用工具：${toolLabels[toolName] || toolName}`,
+            toolName === "get_student_data" ? `正在读取 ${toolInput.student_name} 的学管数据...` :
+            toolName === "save_practice_questions" ? `正在生成专项练习题并保存...` :
+            toolName === "save_parent_feedback" ? `正在生成家长微信反馈...` :
+            `正在生成周报...`,
+            ""
+          );
+
+          const result = executeTool(toolName, toolInput);
+          const parsed = JSON.parse(result);
+
+          if (toolName === "get_student_data" && !parsed.error) {
+            addLog("ok", "数据读取成功",
+              `${parsed.student.name}（${parsed.student.grade}·${parsed.student.subject}）`,
+              `出勤率 ${parsed.attendance.rate}　作业完成率 ${parsed.homework.rate}　参与度 ${parsed.participation}\n本周知识点：${parsed.knowledgePoints}\n薄弱点：${parsed.weakPoints}`
+            );
+          } else if (toolName === "save_practice_questions" && parsed.success) {
+            addLog("ok", "专项练习已生成", "已保存到「本周沟通」→「AI 生成专项练习」",
+              toolInput.questions.slice(0, 120) + (toolInput.questions.length > 120 ? "..." : "")
+            );
+          } else if (toolName === "save_parent_feedback" && parsed.success) {
+            addLog("ok", "家长反馈已生成", "已保存到「家长报告」→「微信反馈内容」",
+              toolInput.feedback.slice(0, 100) + (toolInput.feedback.length > 100 ? "..." : "")
+            );
+          } else if (toolName === "output_weekly_report" && parsed.success) {
+            addLog("ok", "周报已生成", "本周学管工作全部完成",
+              toolInput.report.slice(0, 120) + (toolInput.report.length > 120 ? "..." : "")
+            );
+          } else {
+            addLog("err", "工具执行结果", parsed.error || "完成", "");
+          }
+
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: result,
+          });
+        }
+      }
+
+      // 有文字且没有工具调用 = 最终摘要
+      if (msg.content && !hasToolUse) {
+        addLog("done", "Agent 完成", msg.content, "");
+      }
+
+      // 把工具结果加入 messages 继续循环
+      if (hasToolUse && toolResults.length > 0) {
+        messages.push(...toolResults);
+      }
+
+      // 循环终止条件
+      if (choice.finish_reason === "stop" || !hasToolUse) break;
+    }
+
+  } catch (e) {
+    addLog("err", "请求失败", e.message, "");
+  }
+
+  state.agent.running = false;
+  const btn = document.getElementById("btn-agent");
+  if (btn) { btn.disabled = false; btn.innerHTML = "✦ 执行 Agent"; }
+}
+
+/* ═══════════════════════════════════════
+   普通 AI 调用
+═══════════════════════════════════════ */
+function setBtnL(key, on) {
+  const btn = document.getElementById("btn-" + key); if (!btn) return;
+  const L = { q:"✦ AI 生成抽查题目", p:"✦ AI 生成专项练习", r:"✦ 一键生成家长反馈", ea:"✦ AI 辅助分析" };
+  if (on) { btn.disabled=true; btn.innerHTML=`<span class="spin"></span>AI 生成中...`; }
+  else { btn.disabled=false; btn.innerHTML=L[key]||btn.innerHTML; }
+}
+async function callClaude(prompt, key, field) {
+  if (!API_KEY) { showWelcome(); return; }
+  setBtnL(key, true);
+  try {
+    const res = await fetch("https://api.deepseek.com/chat/completions", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":`Bearer ${API_KEY}`},
+      body:JSON.stringify({model:"deepseek-chat",max_tokens:1000,messages:[{role:"user",content:prompt}]}),
+    });
+    const json = await res.json();
+    if (json.error) { alert("API 错误："+json.error.message); return; }
+    state.data[state.selectedId][field] = json.choices[0].message.content || "";
+    persist(); renderContent();
+  } catch(e) { alert("请求失败："+e.message); } finally { setBtnL(key, false); }
+}
+function genQuestions() {
+  if(!d().knowledgePoints.trim()){alert("请先输入本周知识点");return;}
+  const s=stu();
+  callClaude(`你是一位${s.grade}${s.subject}老师。学生本周学习了：${d().knowledgePoints}。\n请出5道口头抽查题，由浅入深，每题括号内注明考查知识点。格式：编号1-5，每题一行。`,"q","questions");
+}
+function genPractice() {
+  if(!d().weakPoints.trim()){alert("请先记录薄弱点");return;}
+  const s=stu();
+  callClaude(`你是一位${s.grade}${s.subject}老师。学生薄弱知识点：${d().weakPoints}。\n请出5道专项练习题，难度适中，每题附简要解题提示。格式：编号1-5。`,"p","practice");
+}
+function genReport() {
+  const data=d(), s=stu(), a=data.attendance, h=data.homework;
+  const last=data.exams.length?`最近考试：${data.exams[data.exams.length-1].name} ${data.exams[data.exams.length-1].score}分。`:"";
+  callClaude(`你是专业教培辅导老师，根据以下数据生成发给家长的微信反馈。\n学生：${s.name}，${s.grade}，${s.subject}\n出勤率：${Math.round(a.present/a.total*100)}%\n作业完成率：${Math.round(h.completed/h.total*100)}%\n课堂参与度：${data.participation}/5\n本周知识点：${data.knowledgePoints||"未记录"}\n薄弱点：${data.weakPoints||"未记录"}\n${last}\n要求：语气温暖专业；先肯定再改进；给家庭辅助建议；200-300字，适合微信发送。`,"r","report");
+}
+async function genExamAnalysis() {
+  if(!API_KEY){showWelcome();return;}
+  const fe=state.formExam, s=stu();
+  if(!fe.score||!fe.name){alert("请先填写考试名称和得分");return;}
+  setBtnL("ea",true);
+  try {
+    const res = await fetch("https://api.deepseek.com/chat/completions", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":`Bearer ${API_KEY}`},
+      body:JSON.stringify({model:"deepseek-chat",max_tokens:400,messages:[{role:"user",content:`你是一位${s.grade}${s.subject}老师。学生在「${fe.name}」中得分${fe.score}/${fe.fullScore||100}。\n强项：${fe.strong||"未填写"}；弱项：${fe.weak||"未填写"}。\n请给出80-120字的试卷分析，包含成绩评价、失分原因和后续建议。`}]}),
+    });
+    const json=await res.json(); if(json.error){alert("API 错误："+json.error.message);return;}
+    state.formExam.analysis=json.choices[0].message.content||""; renderContent();
+  } catch(e){alert("请求失败："+e.message);} finally{setBtnL("ea",false);}
+}
+
+/* ═══════════════════════════════════════
+   初始化
+═══════════════════════════════════════ */
+(function init() {
+  const s0=STUDENTS[0];
+  document.getElementById("mh-name").textContent=s0.name;
+  document.getElementById("mh-meta").textContent=`${s0.grade} · 辅导科目：${s0.subject} · 状态：${s0.status}`;
+  if(API_KEY){document.getElementById("api-key-input").value=API_KEY; syncApiKeyUI();}
+  if(!localStorage.getItem("xueguan_welcomed")) showWelcome();
+  renderSidebar(); renderTabs(); renderContent();
+})();
+</script>
+</body>
+</html>
