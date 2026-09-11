@@ -1,4 +1,4 @@
-# AI 学管 Agent / EduAgentBench
+# AI 学管 Agent / EduAgent Eval
 
 > 面向独立辅导老师学管场景的 Stateful Agent MVP 与端到端评测框架。
 
