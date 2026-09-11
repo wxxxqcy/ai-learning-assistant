@@ -1,0 +1,199 @@
+{
+  "schema_version": "0.1",
+  "students": {
+    "1": {
+      "profile": {
+        "id": 1,
+        "name": "李明",
+        "grade": "初二",
+        "subject": "数学",
+        "status": "活跃"
+      },
+      "knowledge_points": "一次函数图像与性质，待定系数法求解析式",
+      "weak_points": "待定系数法步骤易遗漏，函数与方程联系概念模糊",
+      "questions": "",
+      "practice": "",
+      "parent_feedback": "",
+      "weekly_report": "",
+      "attendance": {
+        "present": 8,
+        "absent": 1,
+        "total": 9
+      },
+      "homework": {
+        "completed": 7,
+        "late": 1,
+        "missed": 1,
+        "total": 9
+      },
+      "participation": 3,
+      "communications": {
+        "student": [
+          {
+            "id": 1,
+            "date": "2025-03-10",
+            "type": "phone",
+            "content": "了解本周学习情况，数学小测87分，一次函数掌握较好，方程应用题需加强。"
+          },
+          {
+            "id": 2,
+            "date": "2025-03-17",
+            "type": "textQA",
+            "content": "学生发来一道几何证明题，发送文字步骤解析，并布置同类型练习2道。"
+          },
+          {
+            "id": 3,
+            "date": "2025-03-24",
+            "type": "videoQA",
+            "content": "视频连线30分钟，讲解期中考试中错误率高的应用题类型，学生理解良好。"
+          }
+        ],
+        "parent": [
+          {
+            "id": 1,
+            "date": "2025-03-10",
+            "type": "phone",
+            "content": "反馈本周表现：全勤，作业按时完成，参与度4/5。建议每天监督20分钟预习。"
+          },
+          {
+            "id": 2,
+            "date": "2025-03-28",
+            "type": "textQA",
+            "content": "发送本月学习报告，孩子进步明显，期中较第一次月考提升6分，继续保持。"
+          }
+        ]
+      },
+      "exams": [
+        {
+          "id": 1,
+          "name": "第一次月考",
+          "date": "2025-03-01",
+          "score": 82,
+          "full_score": 100,
+          "strong": "整式运算、一元一次方程",
+          "weak": "一次函数应用、几何初步",
+          "analysis": "基础题掌握扎实，失分主要集中在应用题和几何，建议加强题型专项训练，注意审题细节。"
+        },
+        {
+          "id": 2,
+          "name": "期中考试",
+          "date": "2025-04-15",
+          "score": 88,
+          "full_score": 100,
+          "strong": "一次函数图像、整式运算",
+          "weak": "几何证明、数据统计",
+          "analysis": "较月考提升6分，一次函数模块显著进步。几何证明逻辑性需加强，建议每周专项练习2-3道证明题。"
+        },
+        {
+          "id": 3,
+          "name": "第二次月考",
+          "date": "2025-05-10",
+          "score": 91,
+          "full_score": 100,
+          "strong": "一次函数、几何基础",
+          "weak": "概率初步、综合应用",
+          "analysis": "持续进步，几何改善明显。概率是新知识点，需更多练习巩固频率与概率关系。"
+        }
+      ]
+    },
+
+    "2": {
+      "profile": {
+        "id": 2,
+        "name": "王芳",
+        "grade": "初三",
+        "subject": "数学",
+        "status": "跟进中"
+      },
+      "knowledge_points": "",
+      "weak_points": "",
+      "questions": "",
+      "practice": "",
+      "parent_feedback": "",
+      "weekly_report": "",
+      "attendance": {
+        "present": 8,
+        "absent": 1,
+        "total": 9
+      },
+      "homework": {
+        "completed": 7,
+        "late": 1,
+        "missed": 1,
+        "total": 9
+      },
+      "participation": 3,
+      "communications": {
+        "student": [],
+        "parent": []
+      },
+      "exams": []
+    },
+
+    "3": {
+      "profile": {
+        "id": 3,
+        "name": "张伟",
+        "grade": "初一",
+        "subject": "数学",
+        "status": "活跃"
+      },
+      "knowledge_points": "",
+      "weak_points": "",
+      "questions": "",
+      "practice": "",
+      "parent_feedback": "",
+      "weekly_report": "",
+      "attendance": {
+        "present": 8,
+        "absent": 1,
+        "total": 9
+      },
+      "homework": {
+        "completed": 7,
+        "late": 1,
+        "missed": 1,
+        "total": 9
+      },
+      "participation": 3,
+      "communications": {
+        "student": [],
+        "parent": []
+      },
+      "exams": []
+    },
+
+    "4": {
+      "profile": {
+        "id": 4,
+        "name": "陈晓",
+        "grade": "初二",
+        "subject": "数学",
+        "status": "活跃"
+      },
+      "knowledge_points": "",
+      "weak_points": "",
+      "questions": "",
+      "practice": "",
+      "parent_feedback": "",
+      "weekly_report": "",
+      "attendance": {
+        "present": 8,
+        "absent": 1,
+        "total": 9
+      },
+      "homework": {
+        "completed": 7,
+        "late": 1,
+        "missed": 1,
+        "total": 9
+      },
+      "participation": 3,
+      "communications": {
+        "student": [],
+        "parent": []
+      },
+      "exams": []
+    }
+  }
+}
