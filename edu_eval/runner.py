@@ -20,7 +20,7 @@ DEFAULT_TRIALS_PER_CASE = 3
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Run EduAgentBench scenarios."
+        description="Run EduAgent Eval scenarios."
     )
     parser.add_argument(
         "--trials",
@@ -292,7 +292,7 @@ def main() -> None:
         raise ValueError("--trials 必须大于等于 1")
 
     print("=" * 70)
-    print("EduAgentBench v0.1 - DeepSeek Reliability Run")
+    print("EduAgent Eval v0.1 - DeepSeek Reliability Run")
     print("=" * 70)
 
     all_scenarios = load_scenarios(SCENARIO_FILE)

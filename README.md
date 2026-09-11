@@ -61,7 +61,7 @@ v0.1-preview 聚焦 **独立辅导老师 / 学管场景**。
 ## Eval 架构
 
 ```text
-                     EduAgentBench
+                     EduAgent Eval
                           │
              ┌────────────┴────────────┐
              │                         │
@@ -317,7 +317,7 @@ Bad Case / Failure Mode Taxonomy
     ↓
 多模型对比
     ↓
-EduAgentBench v0.1
+EduAgent Eval v0.1
 ```
 
 ## 项目背景
@@ -341,4 +341,4 @@ EduAgentBench v0.1
 
 > **我们如何证明一个教育 Agent 不只是“会回答”，而是真的能够稳定、正确、安全地完成教育业务任务？**
 
-EduAgentBench 就是在这个问题上逐步抽象出来的评测框架。
+EduAgent Eval 就是在这个问题上逐步抽象出来的评测框架。
